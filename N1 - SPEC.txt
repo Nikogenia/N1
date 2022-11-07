@@ -1,0 +1,147 @@
++---------------------------------------------+
+|                                             |
+|   #   #   #           ###  ###  ####  ###   |
+|   ##  #  ##          #     #  # #    #      |
+|   # # #   #   #####   ###  ###  ###  #      |
+|   #  ##   #              # #    #    #      |
+|   #   #  ###          ###  #    ####  ###   |
+|                                             |
++---------------------------------------------+
+
+
+------------
+  OVERVIEW
+------------
+
+- 8 bit CPU architecture
+- 16 bit memory address (64 KiB memory)
+- 256 16 KiB (14 bit) memory banks possible
+  (4243456 bytes total addressable space)
+- 32 instruction types
+- 1-3 byte instruction size
+- 256 I/O Ports
+
+
+---------------
+  INSTRUCTION
+---------------
+
+--- Layout ---
+
+XXXXX YYY [ZZZZZZZZ] [ZZZZZZZZ]
+X: 5 bit       instruction type
+Y: 3 bit       register argument | empty               [Arg1]
+Z: 0/8/16 bit  register argument | immediate argument  [Arg2]
+
+--- Types ---
+
+ID   Binary  Hex   Name      Arg1      Arg2      Size   Type    Action
+-------------------------------------------------------------------------------------------------
+0    00000   00    MWI       reg       imm8      2      MEMORY  r(A1) = A2
+1    00001   01    MWR       reg       reg       2      MEMORY  r(A1) = r(A2)
+2    00010   02    LWA       reg       imm16     3      MEMORY  r(A1) = a(A2)
+3    00011   03    LWHL      reg       -         1      MEMORY  r(A1) = a(r(HL))
+4    00100   04    SWA       reg       imm16     3      MEMORY  a(A2) = r(A1)
+5    00101   05    SWHL      reg       -         1      MEMORY  a(r(HL)) = r(A1)
+6    00110   06    PUSHI     -         imm8      2      STACK   STACK+ = A2
+7    00111   07    PUSHR     reg       -         1      STACK   STACK+ = r(A2)
+8    01000   08    POP       reg       -         1      STACK   r(A1) = STACK-
+9    01001   09    LDA       -         imm16     3      MEMORY  r(HL) = A2
+10   01010   0A    JNZ       reg       -         1      PC      PC = r(HL) if r(A1) != 0 else NOP
+11   01011   0B    JMP       -         -         1      PC      PC = r(HL)
+12   01100   0C    INBI      reg       imm8      2      I/O     r(A1) = p(A2)
+13   01101   0D    INBR      reg       reg       2      I/O     r(A1) = p(r(A2))
+14   01110   0E    OUTBI     reg       imm8      2      I/O     p(A2) = r(A1)
+15   01111   0F    OUTBR     reg       reg       2      I/O     p(r(A2)) = r(A1)
+16   10000   10    ADDI^     reg       imm8      2      ALU     r(A1) = r(A1) + A2
+17   10001   11    ADDR^     reg       reg       2      ALU     r(A1) = r(A1) + r(A2)
+18   10010   12    ADCI^     reg       imm8      2      ALU     r(A1) = r(A1) + A2 + CARRY
+19   10011   13    ADCR^     reg       reg       2      ALU     r(A1) = r(A1) + r(A2) + CARRY
+20   10100   14    ANDI      reg       imm8      2      ALU     r(A1) = r(A1) & A2
+21   10101   15    ANDR      reg       reg       2      ALU     r(A1) = r(A1) & r(A2)
+22   10110   16    ORI       reg       imm8      2      ALU     r(A1) = r(A1) | A2
+23   10111   17    ORR       reg       reg       2      ALU     r(A1) = r(A1) | r(A2)
+24   11000   18    NORI      reg       imm8      2      ALU     r(A1) = !(r(A1) | A2)
+25   11001   19    NORR      reg       reg       2      ALU     r(A1) = !(r(A1) | r(A2))
+26   11010   1A    CMPI^     reg       imm8      2      ALU     FLAGS = r(A1) <=> A2
+27   11011   1B    CMPR^     reg       reg       2      ALU     FLAGS = r(A1) <=> r(A2)
+28   11100   1C    SBBI^     reg       imm8      2      ALU     r(A1) = r(A1) - A2 - BORROW
+29   11101   1D    SBBR^     reg       reg       2      ALU     r(A1) = r(A1) - r(A2) - BORROW
+30   11110   1E    SHL^      reg       -         1      ALU     r(A1) = r(A1) << 1
+31   11111   1F    SHR^      reg       -         1      ALU     r(A1) = r(A1) >> 1
+
+
+------------
+  REGISTER
+------------
+
+--- General ---
+
+ID   Binary  Hex   Usage
+--------------------------------------------------
+0    000     A     GP
+1    001     B     GP
+2    010     C     GP
+3    011     D     GP
+4    100     L     GP | Low Index
+5    101     H     GP | High Index
+6    110     Z     GP | Return
+7    111     F     Flags (LESS/EQUAL/CARRY/BORROW)
+
+--- Special ---
+
+- Program Counter (READ-ONLY -> 0xFFFE..0xFFFF)
+- Stack (PUSH/POP) [Pointer (READ-ONLY -> 0xFFFC..0xFFFD)]
+- Memory Bank (0xFFFB)
+
+
+----------
+  MEMORY
+----------
+
+--- Address Space ---
+
+Address             Usage
+----------------------------------------------------------------
+0x0000..0x7FFF      Program Instruction/Resource ROM (READ-ONLY)
+0x8000..0xBFFF      GP RAM (BANKED)
+0xC000..0xFFEF      GP RAM
+0xFFF0..0xFFFA      UNUSED
+0xFFFB..0xFFFB      Memory Bank
+0xFFFC..0xFFFD      Stack Pointer (READ-ONLY)
+0xFFFE..0xFFFF      Program Counter (READ-ONLY)
+
+--- Banking ---
+
+ID   Binary      Hex   Usage
+-----------------------------------------
+0    00000000    00    GP RAM
+1    00000001    01    VRAM
+...
+
+
+-------
+  I/O
+-------
+
+--- Ports ---
+
+ID   Binary      Hex   Usage
+-----------------------------------------
+0    00000000    00    Exit
+1    00000001    01    GPU
+
+--- Exit ---
+
+- Exit Code Output
+- Stops clock
+- Exit Codes:
+  - 0: CLEAN
+  - 1: UNKNOWN ERROR
+  - 2: STACK OVERFLOW
+  - 3: ACCESS DENIED
+  ...
+
+--- GPU ---
+
+
