@@ -9,6 +9,7 @@
 +---------------------------------------------+
 
 
+
 ------------
   OVERVIEW
 ------------
@@ -22,6 +23,7 @@
 - 256 I/O Ports
 
 
+
 ---------------
   INSTRUCTION
 ---------------
@@ -33,26 +35,27 @@ X: 5 bit       instruction type
 Y: 3 bit       register argument | empty               [Arg1]
 Z: 0/8/16 bit  register argument | immediate argument  [Arg2]
 
+
 --- Types ---
 
 ID   Binary  Hex   Name      Arg1      Arg2      Size   Type    Action
 -------------------------------------------------------------------------------------------------
-0    00000   00    MWI       reg       imm8      2      MEMORY  r(A1) = A2
-1    00001   01    MWR       reg       reg       2      MEMORY  r(A1) = r(A2)
-2    00010   02    LWA       reg       imm16     3      MEMORY  r(A1) = a(A2)
-3    00011   03    LWHL      reg       -         1      MEMORY  r(A1) = a(r(HL))
-4    00100   04    SWA       reg       imm16     3      MEMORY  a(A2) = r(A1)
-5    00101   05    SWHL      reg       -         1      MEMORY  a(r(HL)) = r(A1)
+0    00000   00    MVI       reg       imm8      2      MEMORY  r(A1) = A2
+1    00001   01    MVR       reg       reg       2      MEMORY  r(A1) = r(A2)
+2    00010   02    LDA       reg       imm16     3      MEMORY  r(A1) = a(A2)
+3    00011   03    LDHL      reg       -         1      MEMORY  r(A1) = a(r(HL))
+4    00100   04    STA       reg       imm16     3      MEMORY  a(A2) = r(A1)
+5    00101   05    STHL      reg       -         1      MEMORY  a(r(HL)) = r(A1)
 6    00110   06    PUSHI     -         imm8      2      STACK   STACK+ = A2
 7    00111   07    PUSHR     reg       -         1      STACK   STACK+ = r(A2)
 8    01000   08    POP       reg       -         1      STACK   r(A1) = STACK-
-9    01001   09    LDA       -         imm16     3      MEMORY  r(HL) = A2
+9    01001   09    NOP       -         -         1      -       NOP
 10   01010   0A    JNZ       reg       -         1      PC      PC = r(HL) if r(A1) != 0 else NOP
 11   01011   0B    JMP       -         -         1      PC      PC = r(HL)
-12   01100   0C    INBI      reg       imm8      2      I/O     r(A1) = p(A2)
-13   01101   0D    INBR      reg       reg       2      I/O     r(A1) = p(r(A2))
-14   01110   0E    OUTBI     reg       imm8      2      I/O     p(A2) = r(A1)
-15   01111   0F    OUTBR     reg       reg       2      I/O     p(r(A2)) = r(A1)
+12   01100   0C    INI       reg       imm8      2      I/O     r(A1) = p(A2)
+13   01101   0D    INR       reg       reg       2      I/O     r(A1) = p(r(A2))
+14   01110   0E    OUTI      reg       imm8      2      I/O     p(A2) = r(A1)
+15   01111   0F    OUTR      reg       reg       2      I/O     p(r(A2)) = r(A1)
 16   10000   10    ADDI^     reg       imm8      2      ALU     r(A1) = r(A1) + A2
 17   10001   11    ADDR^     reg       reg       2      ALU     r(A1) = r(A1) + r(A2)
 18   10010   12    ADCI^     reg       imm8      2      ALU     r(A1) = r(A1) + A2 + CARRY
@@ -69,6 +72,9 @@ ID   Binary  Hex   Name      Arg1      Arg2      Size   Type    Action
 29   11101   1D    SBBR^     reg       reg       2      ALU     r(A1) = r(A1) - r(A2) - BORROW
 30   11110   1E    SHL^      reg       -         1      ALU     r(A1) = r(A1) << 1
 31   11111   1F    SHR^      reg       -         1      ALU     r(A1) = r(A1) >> 1
+
+* Operation NOP (01001) is not recommeded to be used and reserved for the future.
+
 
 
 ------------
@@ -88,11 +94,6 @@ ID   Binary  Hex   Usage
 6    110     Z     GP | Return
 7    111     F     Flags (LESS/EQUAL/CARRY/BORROW)
 
---- Special ---
-
-- Program Counter (READ-ONLY -> 0xFFFE..0xFFFF)
-- Stack (PUSH/POP) [Pointer (READ-ONLY -> 0xFFFC..0xFFFD)]
-- Memory Bank (0xFFFB)
 
 
 ----------
@@ -104,20 +105,22 @@ ID   Binary  Hex   Usage
 Address             Usage
 ----------------------------------------------------------------
 0x0000..0x7FFF      Program Instruction/Resource ROM (READ-ONLY)
-0x8000..0xBFFF      GP RAM (BANKED)
-0xC000..0xFFEF      GP RAM
+0x8000..0xBFFF      Banked RAM (see Banking)
+0xC000..0xEFFF      General Purpose RAM
+0xF000..0xFFEF      Stack (PUSH/POP-ACCESS-ONLY)
 0xFFF0..0xFFFA      UNUSED
-0xFFFB..0xFFFB      Memory Bank
-0xFFFC..0xFFFD      Stack Pointer (READ-ONLY)
+0xFFFB..0xFFFB      Memory Bank Pointer
+0xFFFC..0xFFFD      Stack Pointer
 0xFFFE..0xFFFF      Program Counter (READ-ONLY)
+
 
 --- Banking ---
 
 ID   Binary      Hex   Usage
------------------------------------------
-0    00000000    00    GP RAM
-1    00000001    01    VRAM
-...
+------------------------------------------
+0    00000000    00    General Purpose RAM
+1    00000001    01    GPU VRAM
+
 
 
 -------
@@ -127,21 +130,72 @@ ID   Binary      Hex   Usage
 --- Ports ---
 
 ID   Binary      Hex   Usage
------------------------------------------
+----------------------------------
 0    00000000    00    Exit
 1    00000001    01    GPU
+
 
 --- Exit ---
 
 - Exit Code Output
 - Stops clock
-- Exit Codes:
-  - 0: CLEAN
-  - 1: UNKNOWN ERROR
-  - 2: STACK OVERFLOW
-  - 3: ACCESS DENIED
-  ...
+
+EXIT CODES
+
+ID   Binary      Hex   Error
+---------------------------------------
+0    00000000    00    Clean
+1    00000001    01    Unknown
+2    00000010    02    Stack Overflow
+3    00000011    03    Stack Empty
+4    00000100    04    Read-only Access
+
 
 --- GPU ---
 
+# Coming Soon
+
+
+
+------------
+  ASSEMBLY
+------------
+
+--- Syntax ---
+
+GENERAL
+
+Blank lines and leading/trailing whitespaces are ignored.
+
+COMMENTS
+
+Everything after a ';' is ignored by the assembler.
+
+Normal Comment Example:
+; The hole line is ignored.
+
+Inline Comment Example:
+mvi     a, 0xFF  ; A inline comment after a valid instruction
+
+INSTRUCTIONS
+
+Every instruction starts with a name to identify the type. They can be
+default instructions or built-in/custom macros. Most instructions also
+need some arguments, so they are followed after a space ' '. If there
+are more than one argument, they are separated by commas ','. Leading,
+trailing and duplicated spaces are ignored. It is recommended to align
+the arguments of all instructions in the same column (for example 8).
+Instructions need to be in the code section.
+
+No Argument Instruction Example:
+jmp
+
+Single Argument Instruction Examples:
+pop     a
+jnz     z
+
+Multiple Argument Instruction Examples:
+lda     d, 0xC000
+addi    c, 42
+sbbr    b, h
 
