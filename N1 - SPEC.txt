@@ -7,7 +7,7 @@
 |   #   #  ###          ###  #    ####  ###   |
 |                                             |
 +---------------------------------------------+
-
+Copyright Nikocraft 2022 - All rights reserved.
 
 
 ------------
@@ -167,6 +167,17 @@ GENERAL
 
 Blank lines and leading/trailing whitespaces are ignored.
 
+A program can have multiple modules. One of these is the main module,
+which includes and execute the others. A module has two sections:
+definition and code.
+
+The definition section contains includes, constants and variables. It
+goes from the start of the module file, until the first label is defined.
+
+After it comes the code section, which contains labels and instructions.
+Every program must have the label 'main'. Before the first instruction,
+the instruction 'jmp main' is inserted by the assembler. 
+
 COMMENTS
 
 Everything after a ';' is ignored by the assembler.
@@ -198,4 +209,46 @@ Multiple Argument Instruction Examples:
 lda     d, 0xC000
 addi    c, 42
 sbbr    b, h
+
+LABEL
+
+Labels have three different types: macros, functions and normal labels.
+The type is defined with a decorator, which starts with '@', above the
+label.
+
+A normal label is just a definition of a instruction address, which can
+be used to jump to. It has no decorator.
+
+Functions are a little more complex. They are used to be called instead
+of jumping to them. Calling means, that on calling a function, the
+current program counter value is pushed to the stack, before jumping to
+the target. At the end of the function the return instruction is executed,
+so the original address is poped from the stack and jumped to. A label
+is marked as a function with the decorator '@func'.
+
+The last type is a macro. It is just a code snippet, which is placed into
+the program by the assembler. After definition it is handled like a
+instruction, which can be used like any default instruction. It can also
+has arguments. They are defined between the label name and the ':'. The
+arguments have the following layout: %[type][id]. The argument type can be
+'r' for a register, 'i' for an immediate and 'a' for an address. '@macro'
+is used as decorator. A macro ends with the next label.
+
+Normal Label Example:
+main:
+    mvi     a, 0
+    outi    a, 0
+
+Function Example:
+@func
+update_screen:
+    mvi     a, 0
+    outi    a, 1
+    ret
+
+Macro Example:
+@macro
+inc16 %r1, %r2:
+    addi    %r1, 1
+    adci    %r2, 0
 

@@ -4,6 +4,10 @@
 
 include "Guten Tagdududfkjhgvjugfm"
 
+var hi 4
+
+const HELLO 0x40
+
 MAIN:
 	vf frf, 564
 	zjjl 0x345, 345
