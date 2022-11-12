@@ -7,6 +7,7 @@ include "Guten Tagdududfkjhgvjugfm"
 var hi 4
 
 const HELLO 0x40
+const FOO %1
 
 MAIN:
 	vf frf, 564
@@ -15,7 +16,7 @@ MAIN:
 
 LOL:
 	fsdf fd, 435
-	ldgdj, 0x000, 0x23
+	ldgdj 0x000, 0x23
 
 @macro
 EXIT:

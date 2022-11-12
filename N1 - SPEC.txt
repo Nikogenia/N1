@@ -175,8 +175,44 @@ The definition section contains includes, constants and variables. It
 goes from the start of the module file, until the first label is defined.
 
 After it comes the code section, which contains labels and instructions.
-Every program must have the label 'main'. Before the first instruction,
-the instruction 'jmp main' is inserted by the assembler. 
+Every programs main module must have the label 'main'. Before the first
+instruction of the main module, the instruction 'jmp main' is inserted
+by the assembler. 
+
+NAMES
+
+Label, constant and variable names are only allowed to have alphabetic
+charaters and numbers. Additionally underscores '_' are allowed. It is
+recommended to use them to separate words. The names also need to start
+with an alphabetic character instead of a number. The keywords 'include',
+'const', 'var', 'a', 'b', 'c', 'd', 'h', 'l' 'z', 'f' are forbidden.
+
+VALUES
+
+Values can be decimal, hex, octal and binary. Just a number means decimal,
+while 0[type][value] is used for the other types. The type char for hex is
+'h', 'o' for octal and 'b' for binary. Labels, constants, variables and
+registers can be used by their names.
+
+Decimal Examples:
+42
+1337
+
+Hex Examples:
+0x40
+0xe5f2
+
+Octal Examples:
+0o87
+0o4857
+
+Binary Examples:
+0b01010001
+0b1011101010111110
+
+Register Examples:
+a
+h
 
 COMMENTS
 
@@ -210,11 +246,11 @@ lda     d, 0xC000
 addi    c, 42
 sbbr    b, h
 
-LABEL
+LABELS
 
 Labels have three different types: macros, functions and normal labels.
 The type is defined with a decorator, which starts with '@', above the
-label.
+label. It is recommended to indent (4 spaces) the content of the label.
 
 A normal label is just a definition of a instruction address, which can
 be used to jump to. It has no decorator.
@@ -251,4 +287,42 @@ Macro Example:
 inc16 %r1, %r2:
     addi    %r1, 1
     adci    %r2, 0
+
+CONSTANTS
+
+Constants are an alias for an specific value, that not change. On compiling
+all usages are replaced with the assigned value. They are defined in the
+definition section and the keyword 'const'. The name of the constant follows
+after a whitespace ' '. It is recommended to use uppercase letters for them.
+At the end we need the value to assign, which is also separated with a space.
+
+Constant Definition Examples:
+const THE_ANSWER_OF_THE_UNIVERSE 42
+const HELLO_WORLD 0x40
+
+VARIABLES
+
+Variables are similar to constants, but they don't define a fixed value.
+Instead they allocate a region in memory and all references are replaced
+with the address to it. The keyword is 'var' and the last value is the
+size (in bytes) of the space to allocate, instead of the value.
+
+Variable Definition Examples:
+var counter 1
+var vector_3d 3
+
+INCLUDES
+
+To include everything from another module the 'include' keyword is used. It
+has 1 argument, which is the path to the module. The path can be a absolute
+path, relative path (always from main module file), or the name of a built-in
+module. The '.asm' extension is not necessary. It should be used in the
+definition section above the constants and variables. If a overlap in namespace
+exists, the local version is used. Hint: If the path contains whitespaces,
+quotes " or ' are used to surround it.
+
+Include Examples:
+include utils/display
+include player
+include "C:/Users/Hello World/test"
 
