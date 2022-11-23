@@ -267,8 +267,9 @@ the program by the assembler. After definition it is handled like a
 instruction, which can be used like any default instruction. It can also
 has arguments. They are defined between the label name and the ':'. The
 arguments have the following layout: %[type][id]. The argument type can be
-'r' for a register, 'i' for an immediate and 'a' for an address. '@macro'
-is used as decorator. A macro ends with the next label.
+'r' for a register, 'i' for an 8-bit immediate and 'a' for an 16-bit
+immediate/address. '@macro' is used as decorator. A macro ends with the next
+label.
 
 Normal Label Example:
 main:
@@ -325,4 +326,8 @@ Include Examples:
 include utils/display
 include player
 include "C:/Users/Hello World/test"
+
+
+-- Assembler --
+#
 
