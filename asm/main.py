@@ -3,35 +3,47 @@ import sys
 import os
 
 # Local
-from errors import *
-from instruction import Instruction
-from module import Module
+from utils.module import Module
+
+
+def print_help() -> None:
+    """Print a help message"""
+
+    print("----")
+    print("HELP")
+    print("----")
 
 
 def main(args: list[str]) -> int:
     """The main function of the assembler"""
     
     if len(args) < 2:
-        return "Missing arguments! Type '-h' for help ..."
+        print("Missing file argument! Type '-h' for help ...")
+        return 1
+
+    if "-h" in args:
+        print_help()
+        return 0
 
     file = args[-1]
 
     if not os.path.exists(file):
-        raise InvalidArgumentError("Invalid path to program! Type '-h' for help ...")
+        print("Invalid file path! File don't exists. Type '-h' for help ...")
+        return 1
+    if not os.path.isfile(file):
+        print("Invalid file path! Not a file. Type '-h' for help ...")
+        return 1
     if os.path.splitext(file)[1] != ".asm":
-        raise InvalidArgumentError("Invalid file type! Need '*.asm' file! Type '-h' for help ...")
+        print("Invalid file type! File extension needs to be '.asm'. Type '-h' for help ...")
+        return 1
 
     module = Module.file(file)
-    print(module.namespace)
-    print(module.lines)
-    print(module.instructions)
-    print(module.modules)
-    print(module.macros)
 
     return 0
 
 
 # Main
 if __name__ == "__main__":
+
     sys.exit(main(sys.argv))
 

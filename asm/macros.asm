@@ -4,10 +4,11 @@
 
 include "Guten Tagdududfkjhgvjugfm"
 
-var hi 4
+;
+; var hi 4
 
-const HELLO 0x40
-const FOO %1
+; const HELLO 0x40
+; const FOO %1
 
 MAIN:
 	vf frf, 564

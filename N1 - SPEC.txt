@@ -171,8 +171,8 @@ A program can have multiple modules. One of these is the main module,
 which includes and execute the others. A module has two sections:
 definition and code.
 
-The definition section contains includes, constants and variables. It
-goes from the start of the module file, until the first label is defined.
+The definition section contains includes, exports, constants and variables.
+It goes from the start of the module file until the first label is defined.
 
 After it comes the code section, which contains labels and instructions.
 Every programs main module must have the label 'main'. Before the first
@@ -185,13 +185,13 @@ Label, constant and variable names are only allowed to have alphabetic
 charaters and numbers. Additionally underscores '_' are allowed. It is
 recommended to use them to separate words. The names also need to start
 with an alphabetic character instead of a number. The keywords 'include',
-'const', 'var', 'a', 'b', 'c', 'd', 'h', 'l' 'z', 'f' are forbidden.
+'export', 'const', 'var', 'a', 'b', 'c', 'd', 'h', 'l' 'z', 'f' are reserved.
 
 VALUES
 
 Values can be decimal, hex, octal and binary. Just a number means decimal,
 while 0[type][value] is used for the other types. The type char for hex is
-'h', 'o' for octal and 'b' for binary. Labels, constants, variables and
+'x', 'o' for octal and 'b' for binary. Labels, constants, variables and
 registers can be used by their names.
 
 Decimal Examples:
@@ -216,7 +216,7 @@ h
 
 COMMENTS
 
-Everything after a ';' is ignored by the assembler.
+Everything after a ';' in a line is ignored by the assembler.
 
 Normal Comment Example:
 ; The hole line is ignored.
@@ -265,7 +265,7 @@ is marked as a function with the decorator '@func'.
 The last type is a macro. It is just a code snippet, which is placed into
 the program by the assembler. After definition it is handled like a
 instruction, which can be used like any default instruction. It can also
-has arguments. They are defined between the label name and the ':'. The
+has arguments. They are defined between the label name and the colon. The
 arguments have the following layout: %[type][id]. The argument type can be
 'r' for a register, 'i' for an 8-bit immediate and 'a' for an 16-bit
 immediate/address. '@macro' is used as decorator. A macro ends with the next
@@ -314,8 +314,8 @@ var vector_3d 3
 
 INCLUDES
 
-To include everything from another module the 'include' keyword is used. It
-has 1 argument, which is the path to the module. The path can be a absolute
+To include exported things from another module, the 'include' keyword is used.
+It has 1 argument, which is the path to the module. The path can be a absolute
 path, relative path (always from main module file), or the name of a built-in
 module. The '.asm' extension is not necessary. It should be used in the
 definition section above the constants and variables. If a overlap in namespace
@@ -327,7 +327,30 @@ include utils/display
 include player
 include "C:/Users/Hello World/test"
 
+EXPORTS
+
+By default everything is private in a module and not available after including.
+To make a label, constant or variable includable, the 'export' keyword is used.
+Equivalent to include, it has 1 argument. It is just the name of the thing to
+be exported. A export also need to be in the definition section. It is not
+recommended, but if you want to make everything public, you can use a asterisk.
+But be careful with this, because it can fill the namespace full of garbage.
+
+Export Examples:
+export render
+export message
+export *
 
 -- Assembler --
-#
+
+The assembler is written in python. It takes the path of the main file as an
+argument and import it as a module. Every module first get tokenized. Then the
+tokens are parsed into includes, exports, variables, constants, labels and
+instructions. After the namespace is generated, the modules to include are
+imported. All modules are saved in a dictionary together with their path. If
+a module is included, that is already imported, it is used instead of importing
+it again. In the next step, the instructions are verified. After that, all
+references are replaced with there values. At the end all macros are inserted.
+Now we are ready to encode the file. And after a little bit of magic, the output
+is a '.n1' text file with 0s and 1s representing a binary executable.
 
