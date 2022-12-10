@@ -7,19 +7,24 @@ class TokenType(StrEnum):
     """Type of a token"""
 
     SPACE = auto()
+    NEWLINE = auto()
     COMMENT = auto()
+    ARGUMENT = auto()
     COLON = auto()
     COMMA = auto()
+    SLASH = auto()
     AT = auto()
     INCLUDE = auto()
-    CONST = auto()
-    VAR = auto()
+    EXPORT = auto()
+    CONSTANT = auto()
+    VARIABLE = auto()
     NAME = auto()
     STRING = auto()
     DECIMAL = auto()
     HEXADECIMAL = auto()
     OCTAL = auto()
     BINARY = auto()
+    REGISTER = auto()
 
 
 @dataclass(frozen=True, slots=True)

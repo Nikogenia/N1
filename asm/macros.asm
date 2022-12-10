@@ -1,14 +1,19 @@
 ; Hallo Welt
 ; Guten Tag
 
-
 include "Guten Tagdududfkjhgvjugfm"
+include 'Hallo Welt'
+include hi/fdsf
+include ho\fds
 
 ;
 ; var hi 4
 
 ; const HELLO 0x40
 ; const FOO %1
+0o17
+0b1000110
+
 
 MAIN:
 	vf frf, 564
