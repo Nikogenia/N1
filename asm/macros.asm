@@ -6,14 +6,15 @@ include 'Hallo Welt'
 include hi/fdsf
 include ho\fds
 
-;
-; var hi 4
+var hi 4
 
-; const HELLO 0x40
-; const FOO %1
+const HELLO 0x40
+const FOO %r0
+
+export MAIN
+
 0o17
 0b1000110
-
 
 MAIN:
 	vf frf, 564

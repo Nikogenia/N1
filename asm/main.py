@@ -37,7 +37,7 @@ def main(args: list[str]) -> int:
         print("Invalid file type! File extension needs to be '.asm'. Type '-h' for help ...")
         return 1
 
-    module = Module.file(file)
+    main = Module.file(file)
 
     return 0
 
