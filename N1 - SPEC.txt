@@ -171,44 +171,51 @@ A program can have multiple modules. One of these is the main module,
 which includes and execute the others. A module has two sections:
 definition and code.
 
-The definition section contains includes, exports, constants and variables.
-It goes from the start of the module file until the first label is defined.
+The definition section contains includes, exports, constants, variables,
+resources and macros. It goes from the start of the module file until
+the code keyword.
 
 After it comes the code section, which contains labels and instructions.
 Every programs main module must have the label 'main'. Before the first
 instruction of the main module, the instruction 'jmp main' is inserted
-by the assembler. 
+by the assembler. The last instruction need to be a output to the exit
+port, else a error is thrown.
 
 NAMES
 
-Label, constant and variable names are only allowed to have alphabetic
-charaters and numbers. Additionally underscores '_' are allowed. It is
-recommended to use them to separate words. The names also need to start
-with an alphabetic character instead of a number. The keywords 'include',
-'export', 'const', 'var', 'a', 'b', 'c', 'd', 'h', 'l' 'z', 'f' are reserved.
+Label, constant, variable, resource and macro names are only allowed
+to have alphabetic charaters and numbers. Additionally underscores '_'
+and periods '.' are allowed. It is recommended to use snake case. While
+labels and variables should only use lowercase characters, e.g. hello_world,
+constants, resources and macros use uppercase characters, e.g. HELLO_WORLD.
+The names also can't to start with a number. The keywords 'include',
+'export', 'const', 'var', 'res', 'code' and register values 'a', 'b',
+'c', 'd', 'h', 'l' 'z', 'f' are reserved.
 
 VALUES
 
 Values can be decimal, hex, octal and binary. Just a number means decimal,
-while 0[type][value] is used for the other types. The type char for hex is
-'x', 'o' for octal and 'b' for binary. Labels, constants, variables and
-registers can be used by their names.
+while '0[type][value]' is used for the other types. The type char for hex is
+'x', 'o' for octal and 'b' for binary. Hint: Underscores '_' can be placed
+in the values, to improve readability. They are ignored by the assembler.
+Labels, constants, variables, resources and registers can be used by their
+names.
 
 Decimal Examples:
 42
-1337
+1_337
 
 Hex Examples:
 0x40
-0xe5f2
+0x_e5_f2
 
 Octal Examples:
 0o87
-0o4857
+0o_48_57
 
 Binary Examples:
 0b01010001
-0b1011101010111110
+0b_1011_1010_1011_1110
 
 Register Examples:
 a
@@ -253,23 +260,27 @@ The type is defined with a decorator, which starts with '@', above the
 label. It is recommended to indent (4 spaces) the content of the label.
 
 A normal label is just a definition of a instruction address, which can
-be used to jump to. It has no decorator.
+be used to jump to. It has no decorator. They need to be in the code
+section.
 
 Functions are a little more complex. They are used to be called instead
 of jumping to them. Calling means, that on calling a function, the
 current program counter value is pushed to the stack, before jumping to
 the target. At the end of the function the return instruction is executed,
 so the original address is poped from the stack and jumped to. A label
-is marked as a function with the decorator '@func'.
+is marked as a function with the decorator '@func'. Functions are defined
+in the code section too. It is recommended to leave a blank line after it.
 
 The last type is a macro. It is just a code snippet, which is placed into
 the program by the assembler. After definition it is handled like a
 instruction, which can be used like any default instruction. It can also
 has arguments. They are defined between the label name and the colon. The
-arguments have the following layout: %[type][id]. The argument type can be
+arguments have the following layout: '%[type][id]'. The argument type can be
 'r' for a register, 'i' for an 8-bit immediate and 'a' for an 16-bit
-immediate/address. '@macro' is used as decorator. A macro ends with the next
-label.
+immediate/address. After definition the arguments can be used with the
+same format within the macro. A macro need to be defined in the definition
+section and ends with a other definition, the next macro or the start
+of the code section. '@macro' is the decorator used.
 
 Normal Label Example:
 main:
@@ -294,8 +305,8 @@ CONSTANTS
 Constants are an alias for an specific value, that not change. On compiling
 all usages are replaced with the assigned value. They are defined in the
 definition section and the keyword 'const'. The name of the constant follows
-after a whitespace ' '. It is recommended to use uppercase letters for them.
-At the end we need the value to assign, which is also separated with a space.
+after a whitespace ' '. At the end we need the value to assign, which is also
+separated with a space.
 
 Constant Definition Examples:
 const THE_ANSWER_OF_THE_UNIVERSE 42
@@ -312,15 +323,26 @@ Variable Definition Examples:
 var counter 1
 var vector_3d 3
 
+RESOURCES
+
+The last definition is a resource, which is like a variable, but read only.
+Instead of allocating a region in memory, there value is appended to the end
+of the program code. References are replaced with the address to it too.
+The keyword is 'res' and the last value can be anything.
+
+Resource Definition Examples:
+res HELLO_WORLD_TEXT "Hello world!"
+res UI_LAYOUT = 0x434e_a23f_8b9c_99fd
+
 INCLUDES
 
 To include exported things from another module, the 'include' keyword is used.
 It has 1 argument, which is the path to the module. The path can be a absolute
 path, relative path (always from main module file), or the name of a built-in
 module. The '.asm'/'.asmn1' extension is not necessary. It should be used in the
-definition section above the constants and variables. If a overlap in namespace
-exists, the local version is used. Hint: If the path contains whitespaces,
-quotes " or ' are used to surround it.
+definition section above the constants, variables, resources, macros and exports.
+If a overlap in namespace exists, the local version is used. Hint: If the path
+contains whitespaces, quotes " or ' are used to surround it.
 
 Include Examples:
 include utils/display
@@ -330,11 +352,12 @@ include "C:/Users/Hello World/test"
 EXPORTS
 
 By default everything is private in a module and not available after including.
-To make a label, constant or variable includable, the 'export' keyword is used.
-Equivalent to include, it has 1 argument. It is just the name of the thing to
-be exported. A export also need to be in the definition section. It is not
-recommended, but if you want to make everything public, you can use a asterisk.
-But be careful with this, because it can fill the namespace full of garbage.
+To make a label, constant, variable, resource or macro includable, the 'export'
+keyword is used. Equivalent to include, it has 1 argument. It is just the name
+of the thing to be exported. A export also need to be in the definition section.
+It is not recommended, but if you want to make everything public, you can use
+a asterisk. But be careful with this, because it can fill the namespace full
+of garbage quickly.
 
 Export Examples:
 export render
@@ -344,13 +367,31 @@ export *
 -- Assembler --
 
 The assembler is written in python. It takes the path of the main file as an
-argument and import it as a module. Every module first get tokenized. Then the
-tokens are parsed into includes, exports, variables, constants, labels and
-instructions. After the namespace is generated, the modules to include are
-imported. All modules are saved in a dictionary together with their path. If
-a module is included, that is already imported, it is used instead of importing
+argument and import it as a module.
+
+Every module first get tokenized. Then the tokens are parsed into includes,
+exports, variables, constants, resources, labels, macros and instructions.
+After the namespace is generated, the modules to include are imported.
+All modules are saved in a dictionary together with their path. If a module
+is included, that is already imported, it is used instead of importing
 it again. In the next step, the instructions are verified. After that, all
 references are replaced with there values. At the end all macros are inserted.
-Now we are ready to encode the file. And after a little bit of magic, the output
+
+Now we are ready to encode the program. And after a little bit of magic, the output
 is a '.n1' text file with 0s and 1s representing a binary executable.
+
+If the flag '-m' is given, a minecraft schematic is generated. It puts redstone
+blocks on specific positions, depending on the content of the '.n1' file, so
+that it can pasted into a rom. The output is a '.schem' file.
+
+By default, the assembler exits, if the output files already exists. To override
+them, use the '-o' flag.
+
+To get detailted debug information, the '-d' flag can be used. It prints additional
+information to console and generates '.txt' text files for all modules with all
+data of each step in the assembling process.
+
+To regenerate the source code from a executable, the '-r' flag is used. Instead
+of assembling the given file, a '.n1' file is expected, which is used to generate
+a basic version of the original source code.
 
