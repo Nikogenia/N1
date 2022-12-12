@@ -1,4 +1,4 @@
-; Hallo Welt
+; Hallo Welt TODO FIXME DEBUG
 ; Guten Tag
 
 include "Guten Tagdududfkjhgvjugfm"
@@ -10,13 +10,16 @@ var hi 4
 
 const HELLO 0x40
 const FOO %r0
+234
+435
+bjk234
 
 export MAIN
 
 0o17
 0b1000110
 
-MAIN:
+MAIN %r0, %i1:
 	vf frf, 564
 	zjjl 0x345, 345
 	lkl nkdg, hgh

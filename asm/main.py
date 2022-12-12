@@ -33,7 +33,7 @@ def main(args: list[str]) -> int:
     if not os.path.isfile(file):
         print("Invalid file path! Not a file. Type '-h' for help ...")
         return 1
-    if os.path.splitext(file)[1] != ".asm":
+    if os.path.splitext(file)[1] not in (".asm", ".asmn1"):
         print("Invalid file type! File extension needs to be '.asm'. Type '-h' for help ...")
         return 1
 

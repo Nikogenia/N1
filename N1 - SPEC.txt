@@ -317,7 +317,7 @@ INCLUDES
 To include exported things from another module, the 'include' keyword is used.
 It has 1 argument, which is the path to the module. The path can be a absolute
 path, relative path (always from main module file), or the name of a built-in
-module. The '.asm' extension is not necessary. It should be used in the
+module. The '.asm'/'.asmn1' extension is not necessary. It should be used in the
 definition section above the constants and variables. If a overlap in namespace
 exists, the local version is used. Hint: If the path contains whitespaces,
 quotes " or ' are used to surround it.
