@@ -4,6 +4,7 @@ import os
 
 # Local
 from utils.module import Module
+from utils.token import Token, TokenType
 
 
 def print_help() -> None:
@@ -38,6 +39,21 @@ def main(args: list[str]) -> int:
         return 1
 
     main = Module.file(file)
+
+    print("Tokenize ...")
+    print()
+    main.tokenize()
+
+    print("Result:")
+    print()
+    for line in main.token_lines:
+        for token in line:
+            print(f"{f'{token.line}:{token.column}':<7}{token.type.name:<12}{repr(token.value) if token.value else ''}")
+        print()
+
+    print("Parse ...")
+    print()
+    main.parse()
 
     return 0
 

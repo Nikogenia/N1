@@ -3,6 +3,8 @@ from typing import Self, Callable
 import string
 
 # Local
+from utils.definition import Include, Export, Constant, Variable, Resource, Macro
+from utils.code import Instruction, Label
 from utils.error import Error, ErrorType
 from utils.token import Token, TokenType
 
@@ -14,21 +16,31 @@ class Module:
         
         # General data
         self.path: str = path
+
+        # Text data
         self.code: str = code
         self.lines: list[str] = [line + "\n" for line in code.splitlines()]
+        
+        # Token data
         self.tokens: list[Token] = []
         self.token_lines: list[list[Token]] = []
+
+        # Parse data
+        self.includes: list[Include] = []
+        self.exports: list[Export] = []
+        self.constants: list[Constant] = []
+        self.variables: list[Variable] = []
+        self.resources: list[Resource] = []
+        self.macros: list[Macro] = []
+        self.instructions: list[Instruction] = []
+        self.labels: list[Label] = []
+        self.namespace: dict[str, Label | Resource | Variable | Constant] = {}
 
         # Temporary data
         self.tokenize_mode: Callable[[Module, int, str, int, str], bool] = self.tokenize_mode_normal
         self.tokenize_data: dict = {}
-
-        self.tokenize()
-
-        for token in self.tokens:
-            print(repr(token))
-            if token.type == TokenType.NEWLINE:
-                print()
+        self.parse_mode: Callable[[Module, list[Token], list[Token]], None] = self.parse_mode_definition
+        self.parse_data: dict = {}
 
         """
         self.namespace = {}
@@ -73,7 +85,9 @@ class Module:
 
     def tokenize(self) -> None:
         """Tokenize the lines"""
-        
+
+        line_index = []
+
         for line, code in enumerate(self.lines):
 
             self.tokenize_mode = self.tokenize_mode_normal
@@ -83,6 +97,11 @@ class Module:
 
                 if self.tokenize_mode(line, code, column, char):
                     break
+
+            line_index.append(len(self.tokens))
+
+        for i, j in zip([0] + line_index, line_index):
+            self.token_lines.append(self.tokens[i:j])
 
     def tokenize_mode_normal(self, line: int, code: str, column: int, char: str) -> bool:
         """Tokenize a char in normal mode"""
@@ -109,6 +128,9 @@ class Module:
             case "@":
                 self.tokens.append(Token(TokenType.AT, line, column))
                 processed = True
+            case "$":
+                self.tokens.append(Token(TokenType.DOLLAR, line, column))
+                processed = True
             case "'" | '"':
                 self.tokenize_data["value"] = ""
                 self.tokenize_mode = self.tokenize_mode_string
@@ -124,7 +146,7 @@ class Module:
             self.tokenize_mode = self.tokenize_mode_value
             processed = True
 
-        elif char in string.ascii_letters + "_":
+        elif char in string.ascii_letters + "_.":
             self.tokenize_data["value"] = char
             self.tokenize_mode = self.tokenize_mode_name
             processed = True
@@ -162,6 +184,9 @@ class Module:
 
     def tokenize_mode_value(self, line: int, code: str, column: int, char: str) -> bool:
         """Tokenize a char in value mode"""
+
+        if char == "_":
+            return False
 
         if len(self.tokenize_data["value"]) == 1 and self.tokenize_data["type"] == TokenType.DECIMAL:
             allowed = string.hexdigits + "xobXOB"
@@ -208,9 +233,10 @@ class Module:
     def tokenize_mode_name(self, line: int, code: str, column: int, char: str) -> bool:
         """Tokenize a char in name mode"""
 
-        if char not in string.ascii_letters + string.digits + "_":
+        if char not in string.ascii_letters + string.digits + "_.":
             keywords = {"include": TokenType.INCLUDE, "export": TokenType.EXPORT,
-                        "const": TokenType.CONSTANT, "variable": TokenType.VARIABLE}
+                        "code": TokenType.CODE, "const": TokenType.CONSTANT,
+                        "var": TokenType.VARIABLE, "res": TokenType.RESOURCE}
             if self.tokenize_data["value"].lower() in keywords:
                 self.tokens.append(Token(keywords[self.tokenize_data["value"].lower()], line,
                     column - len(self.tokenize_data["value"])))
@@ -248,10 +274,47 @@ class Module:
 
         return False
 
+    def parse(self) -> None:
+        """Parse the tokens"""
+
+        for tokens in self.token_lines:
+
+            start = 0
+            for index, token in enumerate(tokens):
+                if token.type != TokenType.SPACE:
+                    start = index
+                    break
+            end = len(tokens) - 1
+            for index, token in enumerate(reversed(tokens)):
+                if token.type != TokenType.SPACE and token.type != TokenType.NEWLINE:
+                    end = len(tokens) - index
+                    break
+
+            stripped = list(filter(lambda x: x.type != TokenType.COMMENT, tokens[start:end]))
+
+            if not stripped:
+                continue
+
+            self.parse_mode(tokens, stripped)
+
+    def parse_mode_definition(self, tokens: list[Token], stripped: list[Token]) -> None:
+
+        match stripped[0].type:
+            case TokenType.CODE:
+                self.parse_mode = self.parse_mode_code
+                if len(stripped) > 1:
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          "Invalid usage of code keyword!").exit()
+            case TokenType.INCLUDE:
+                pass
+
+    def parse_mode_code(self, tokens: list[Token], stripped: list[Token]) -> None:
+        pass
+
     @classmethod
     def file(cls, path: str) -> Self:
         """Load a module from file"""
 
         with open(path, "r", encoding="utf-8") as f:
-            cls(f.read(), path)
+            return cls(f.read(), path)
 
