@@ -342,12 +342,13 @@ path, relative path (always from main module file), or the name of a built-in
 module. The '.asm'/'.asmn1' extension is not necessary. It should be used in the
 definition section above the constants, variables, resources, macros and exports.
 If a overlap in namespace exists, the local version is used. Hint: If the path
-contains whitespaces, quotes " or ' are used to surround it.
+contains whitespaces or non alphabetic/numeric characters, quotes " or ' are
+used to surround it.
 
 Include Examples:
 include utils/display
 include player
-include "C:/Users/Hello World/test"
+include "C:/Users/Hello World/test/1"
 
 EXPORTS
 

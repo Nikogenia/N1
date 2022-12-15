@@ -13,14 +13,14 @@ class Module:
     """Module for parsing"""
 
     def __init__(self, code: str, path: str) -> None:
-        
+
         # General data
         self.path: str = path
 
         # Text data
         self.code: str = code
         self.lines: list[str] = [line + "\n" for line in code.splitlines()]
-        
+
         # Token data
         self.tokens: list[Token] = []
         self.token_lines: list[list[Token]] = []
@@ -41,47 +41,6 @@ class Module:
         self.tokenize_data: dict = {}
         self.parse_mode: Callable[[Module, list[Token], list[Token]], None] = self.parse_mode_definition
         self.parse_data: dict = {}
-
-        """
-        self.namespace = {}
-        self.instructions = []
-        self.macros = {}
-        self.modules = []
-        self.lines = [line.replace("\t", " ").replace("\n", "").strip() for line in lines]
-
-        decorators = []
-        definitions = True
-        macro = None
-        for line, value in enumerate(self.lines):
-            if ";" in value or value == "":
-                continue
-            if value.lower().startswith("include"):
-                self.modules.append(value.split('"')[1])
-            elif value.startswith("@"):
-                decorators.append(value.replace("@", ""))
-            elif value.endswith(":"):
-                name = value.lower().replace(":", "").split(" ")[0]
-                if "macro" in decorators:
-                    args = ()
-                    macro = (name, args)
-                    if name not in self.macros:
-                        self.macros[name] = {}
-                    self.macros[name][args] = []
-                else:
-                    macro = None
-                    self.namespace[value.lower().replace(":", "")] = len(self.instructions)
-                decorators.clear()
-                definitions = False
-            else:
-                if definitions:
-                    raise InvalidSyntaxError(f"Instruction '{value}' in global scope (line {line + 1})")
-                instruction = Instruction.text(value)
-                if instruction is not None:
-                    if macro is None:
-                        self.instructions.append(instruction)
-                    else:
-                        self.macros[macro[0]][macro[1]].append(instruction)
-        """
 
     def tokenize(self) -> None:
         """Tokenize the lines"""
@@ -139,7 +98,7 @@ class Module:
                 self.tokenize_data["value"] = ""
                 self.tokenize_mode = self.tokenize_mode_argument
                 processed = True
-        
+
         if char in string.digits:
             self.tokenize_data["value"] = char
             self.tokenize_data["type"] = TokenType.DECIMAL
@@ -211,7 +170,7 @@ class Module:
             if self.tokenize_data["value"] != "0":
                 Error(self, line, ErrorType.SYNTAX, "The first digit of a non-decimal value definition" +
                       f" need to be 0, not {self.tokenize_data['value']!r}!").exit()
-            
+
             token_type = {"x": TokenType.HEXADECIMAL, "o": TokenType.OCTAL, "b": TokenType.BINARY}
             if char.lower() not in token_type:
                 Error(self, line, ErrorType.SYNTAX,
@@ -299,16 +258,81 @@ class Module:
 
     def parse_mode_definition(self, tokens: list[Token], stripped: list[Token]) -> None:
 
+        if "macro" in self.parse_data:
+            self.parse_mode_macro(tokens, stripped)
+            return
+
+        line_length = {TokenType.CODE: (1, 0, False, "It has no arguments."),
+                       TokenType.INCLUDE: (0, 1, False, ""),
+                       TokenType.EXPORT: (3, 1, True, "It takes 1 argument, which is the name of the thing to export."),
+                       TokenType.CONSTANT: (5, 2, True, "It takes 2 arguments, the name and the value."),
+                       TokenType.VARIABLE: (5, 2, True, "It takes 2 arguments, the name and the size."),
+                       TokenType.RESOURCE: (5, 2, True, "It takes 2 arguments, the name and the value.")}
+
+        for token_type, (length, check_space, check_name, description) in line_length.items():
+            if list(filter(lambda x: x.type == token_type, stripped)):
+                if stripped[0].type != token_type:
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          f"Invalid usage of the {token_type.value} keyword!\n" +
+                          f"The keyword need to be at the beginning of the line.").exit()
+                if len(stripped) != length and length != 0:
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          f"Invalid usage of the {token_type.value} keyword!\n" +
+                          description).exit()
+                if (check_space != 0 and stripped[1].type != TokenType.SPACE) or \
+                   (check_space == 2 and stripped[3].type != TokenType.SPACE):
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          f"Invalid usage of the {token_type.value} keyword!\n" +
+                          f"The {'argument needs' if check_space == 1 else 'arguments need'} " +
+                          f"to be separated with {'a space' if check_space == 1 else 'spaces'}.").exit()
+
+                if check_name and stripped[2].type != TokenType.NAME:
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          f"Invalid usage of the {token_type.value} keyword!\n" +
+                          "The first argument needs to be a name.").exit()
+
         match stripped[0].type:
             case TokenType.CODE:
                 self.parse_mode = self.parse_mode_code
-                if len(stripped) > 1:
-                    Error(self, stripped[0].line, ErrorType.SYNTAX,
-                          "Invalid usage of code keyword!").exit()
             case TokenType.INCLUDE:
-                pass
+                if len(stripped) < 3:
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          "Invalid usage of the include keyword!\n" +
+                          "It takes one or more names and slashes, alternatively also a single string.").exit()
+                self.includes.append(Include(stripped[2:]))
+            case TokenType.EXPORT:
+                self.exports.append(Export(stripped[2]))
+            case TokenType.CONSTANT:
+                self.constants.append(Constant(stripped[2], stripped[4]))
+            case TokenType.VARIABLE:
+                self.variables.append(Variable(stripped[2], stripped[4]))
+            case TokenType.RESOURCE:
+                self.resources.append(Resource(stripped[2], stripped[4]))
+            case TokenType.AT:
+                if len(stripped) != 2 or stripped[1].type != TokenType.NAME:
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          "Invalid decorator! An '@' needs to be followed by a name without a space.").exit()
+                if stripped[1].value not in ("macro", "func"):
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          "Unknown decorator! Possible decorators: @macro, @func").exit()
+                if stripped[1].value != "macro":
+                    Error(self, stripped[0].line, ErrorType.SYNTAX,
+                          "Wrong section for decorator! The definition section can only contain macros.").exit()
+                self.parse_data["macro"] = False
+            case _:
+                value = "" if stripped[0].value is None else f" (value: {stripped[0].value})"
+                Error(self, stripped[0].line, ErrorType.SYNTAX,
+                      f"Invalid token '{stripped[0].type.value}'{value}\n" +
+                      "at the beginning of the line in the definition section!").exit()
+
+    def parse_mode_macro(self, tokens: list[Token], stripped: list[Token]) -> None:
+
+        if stripped[0].type == TokenType.NAME:
+            del self.parse_data["macro"]
+            self.parse_mode_definition(tokens, stripped)
 
     def parse_mode_code(self, tokens: list[Token], stripped: list[Token]) -> None:
+
         pass
 
     @classmethod

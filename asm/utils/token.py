@@ -33,7 +33,7 @@ class TokenType(StrEnum):
 @dataclass(frozen=True, slots=True)
 class Token:
     """Token with type, line and column number and optional value"""
-    
+
     type: TokenType
     line: int
     column: int

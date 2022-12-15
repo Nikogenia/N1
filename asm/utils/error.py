@@ -6,6 +6,7 @@ from enum import StrEnum, auto
 import sys
 
 # Local
+from utils.general import render_tabs
 if TYPE_CHECKING:
     from utils.module import Module
 
@@ -15,6 +16,7 @@ class ErrorType(StrEnum):
 
     SYNTAX = "Syntax Error"
     STRING = "String Error"
+    INCLUDE = "Include Error"
     VALUE = "Value Error"
     REFERENCE = "Reference Error"
     INSTRUCTION = "Instruction Error"
@@ -30,7 +32,7 @@ class Error:
     message: str
 
     def report(self) -> str:
-        
+
         result = "-" * 80 + "\n"
         result += "FATAL ERROR".center(80) + "\n"
         result += "-" * 80 + "\n\n"
@@ -40,7 +42,7 @@ class Error:
             result += "         ...\n\n"
         for i in range(self.line - 6, self.line + 7):
             if 0 <= i < len(self.module.lines):
-                code = self.module.lines[i].replace("\n", "")
+                code = render_tabs(self.module.lines[i].replace("\n", ""))
                 result += f"{'>>>' if i == self.line else '   '} {i + 1:<5}{code}\n"
         if self.line + 7 < len(self.module.lines):
             result += "\n         ...\n"

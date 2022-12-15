@@ -11,6 +11,10 @@ class Include:
 
     path: list[Token]
 
+    @property
+    def string(self) -> bool:
+        return self.path[0].type == TokenType.STRING and len(self.path) == 1
+
 
 @dataclass(frozen=True, slots=True)
 class Export:

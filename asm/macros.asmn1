@@ -11,30 +11,30 @@ var hi 4
 const HE.LLO 0x40
 const FOO %r0
 
-res TEST 234234525345
+res HI 234234525345
 
-234
-435
-bjk234
-
-export MAIN
-
-0xeaf
-
-0o17
-0_b__100_0110
+export main
 
 @macro
 E.XIT:
 	mwi		a, 0
-	outbi	a, 0
+    outbi	a, 0
 
 @macro
 Call %r0, %a1:
 	push %r0
 	hi 8
 
-code 3
+code
+
+234
+435
+bjk234
+
+0xeaf
+
+0o17
+0_b__100_0110
 
 MAIN:
 	vf frf, 564

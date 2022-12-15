@@ -17,7 +17,7 @@ def print_help() -> None:
 
 def main(args: list[str]) -> int:
     """The main function of the assembler"""
-    
+
     if len(args) < 2:
         print("Missing file argument! Type '-h' for help ...")
         return 1
@@ -54,6 +54,8 @@ def main(args: list[str]) -> int:
     print("Parse ...")
     print()
     main.parse()
+
+    print(main.includes)
 
     return 0
 
