@@ -1,10 +1,10 @@
 ; Hallo Welt TODO FIXME DEBUG
 ; Guten Tag
 
-include "Guten Tagdududfkjhgvjugfm"
-include 'Hallo Welt'
-include hi/fdsf
-include ho\fds
+;include "Guten Tagdududfkjhgvjugfm"
+;include 'Hallo Welt'
+;include hi/fdsf
+;include ho\fds
 
 var hi 4
 
@@ -27,21 +27,22 @@ Call %r0, %a1:
 
 code
 
-234
-435
-bjk234
+;234
+;435
+;bjk234
 
-0xeaf
+;0xeaf
 
-0o17
-0_b__100_0110
+;0o17
+;0_b__100_0110
 
 MAIN:
-	vf frf, 564
+    vf frf, 564
 	zjjl 0x345, 345
 	lkl nkdg, hgh
 
 LOL:
-	fsdf fd, 435
+	fsdf
 	ldgdj 0x000, 0x23
+    exit
 

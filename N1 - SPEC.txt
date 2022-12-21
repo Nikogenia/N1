@@ -178,8 +178,8 @@ the code keyword.
 After it comes the code section, which contains labels and instructions.
 Every programs main module must have the label 'main'. Before the first
 instruction of the main module, the instruction 'jmp main' is inserted
-by the assembler. The last instruction need to be a output to the exit
-port, else a error is thrown.
+by the assembler. The last instruction of every module needs to be a
+output to the exit port or a return statement, else a error is thrown.
 
 NAMES
 
@@ -389,8 +389,8 @@ By default, the assembler exits, if the output files already exists. To override
 them, use the '-o' flag.
 
 To get detailted debug information, the '-d' flag can be used. It prints additional
-information to console and generates '.txt' text files for all modules with all
-data of each step in the assembling process.
+information to console and generates '.txt' text files for all modules in a debug
+directory with all data of each step in the assembling process.
 
 To regenerate the source code from a executable, the '-r' flag is used. Instead
 of assembling the given file, a '.n1' file is expected, which is used to generate
