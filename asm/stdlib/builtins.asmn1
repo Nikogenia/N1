@@ -1,0 +1,54 @@
+; ------------------------------------
+; BUILTINS OF THE N1 ASSEMBLY LANGUAGE
+; ------------------------------------
+
+
+; REFERENCES
+
+; Ports
+const PORT_EXIT 0
+const PORT_GPU 1
+
+; Exit codes
+const EXIT_CLEAN 0
+const EXIT_UNKNOWN 1
+const EXIT_ST_OVERFLOW 2
+const EXIT_ST_EMPTY 3
+const EXIT_R_O_ACCESS 4
+
+; Memory banks
+const BANK_GP_RAM 0
+const BANK_GPU_VRAM 1
+
+; Memory addresses
+const ADDR_ROM 0x0000
+const ADDR_BANK 0x8000
+const ADDR_GP_RAM 0xC000
+const ADDR_STACK 0xF000
+const ADDR_BANK_POINTER 0xFFFB
+const ADDR_ST_POINTER 0xFFFC
+const ADDR_PROGRAM_COUNTER 0xFFFE
+
+
+; MACROS
+
+; Exit
+@macro
+EXIT %r0:
+    outi    %r0, PORT_EXIT
+
+@macro
+EXIT %i0:
+    mvi     a, %i0
+    exit    a
+
+@macro
+EXIT:
+    exit    EXIT_CLEAN
+
+
+; EXPORTS
+
+; Everything
+;export *
+
