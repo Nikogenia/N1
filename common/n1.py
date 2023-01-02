@@ -46,14 +46,23 @@ INSTRUCTION = [
 ]
 
 
+SIZE_ROM = 0x8000
+SIZE_BANK = 0x4000
+SIZE_RAM = 0x3000
+SIZE_STACK = 0x0FEF
+
+ADDR_ROM = 0x0000
+ADDR_BANK = ADDR_ROM + SIZE_ROM
+ADDR_RAM = ADDR_BANK + SIZE_BANK
+ADDR_STACK = ADDR_RAM + SIZE_RAM
+
+ADDR_MB = 0xFFFB
+ADDR_SP = 0xFFFC
+ADDR_PC = 0xFFFE
+
+
 def instruction2binary(name: str) -> str:
     for n, b, a, l in INSTRUCTION:
-        if n == name:
-            return b
-
-
-def register2binary(name: str) -> str:
-    for n, b in REGISTER:
         if n == name:
             return b
 
@@ -62,6 +71,24 @@ def binary2instruction(binary: str) -> str:
     for n, b, a, l in INSTRUCTION:
         if b == binary:
             return n
+
+
+def instruction_args(name: str) -> str:
+    for n, b, a, l in INSTRUCTION:
+        if n == name:
+            return a
+
+
+def instruction_length(name: str) -> str:
+    for n, b, a, l in INSTRUCTION:
+        if n == name:
+            return l
+
+
+def register2binary(name: str) -> str:
+    for n, b in REGISTER:
+        if n == name:
+            return b
 
 
 def binary2register(binary: str) -> str:
