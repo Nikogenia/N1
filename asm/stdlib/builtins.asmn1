@@ -15,10 +15,12 @@ const EXIT_UNKNOWN 1
 const EXIT_ST_OVERFLOW 2
 const EXIT_ST_EMPTY 3
 const EXIT_R_O_ACCESS 4
+const EXIT_INVALID_BANK 5
+const EXIT_INVALID_ADDR 6
 
 ; Memory banks
-const BANK_GP_RAM 0
-const BANK_GPU_VRAM 1
+const BANK_RAM 0
+const BANK_VRAM 1
 
 ; Memory addresses
 const ADDR_ROM 0x0000

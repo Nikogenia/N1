@@ -149,6 +149,8 @@ ID   Binary      Hex   Error
 2    00000010    02    Stack Overflow
 3    00000011    03    Stack Empty
 4    00000100    04    Read-only Access
+5    00000101    05    Invalid Bank
+6    00000110    06    Invalid Address
 
 
 --- GPU ---
