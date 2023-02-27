@@ -54,14 +54,26 @@ class Win(th.Thread):
 
         self.screen.fill(C_BG1)
 
-        exit_str = "--------" if self.glob.n1.exit == -1 else number2str(self.glob.n1.exit, 8)
+        exit_str = "----" if self.glob.n1.exit == -1 else "0x" + number2str(self.glob.n1.exit, 2)
         self.screen.blit(self.font.render("Exit", True, C_FG3), (5, 524))
-        self.screen.blit(self.font.render(exit_str, True, C_FG1), (80, 524))
+        self.screen.blit(self.font.render(exit_str, True, C_FG1), (60, 524))
 
         for i, r in enumerate("abcdhlzf"):
-            r_str = number2str(self.glob.n1.registers[r], 8)
+            r_str = "0x" + number2str(self.glob.n1.registers[r], 2)
             self.screen.blit(self.font.render(r.upper(), True, C_FG3), (5, 550 + i * 18))
-            self.screen.blit(self.font.render(r_str, True, C_FG1), (80, 550 + i * 18))
+            self.screen.blit(self.font.render(r_str, True, C_FG1), (60, 550 + i * 18))
+
+        pc_str = "0x" + number2str(self.glob.n1.pc[0], 2) + number2str(self.glob.n1.pc[1], 2)
+        self.screen.blit(self.font.render("PC", True, C_FG3), (120, 524))
+        self.screen.blit(self.font.render(pc_str, True, C_FG1), (175, 524))
+
+        sp_str = "0x" + number2str(self.glob.n1.sp[0], 2) + number2str(self.glob.n1.sp[1], 2)
+        self.screen.blit(self.font.render("SP", True, C_FG3), (120, 550))
+        self.screen.blit(self.font.render(sp_str, True, C_FG1), (175, 550))
+
+        mb_str = "0x" + number2str(self.glob.n1.mb, 2)
+        self.screen.blit(self.font.render("MB", True, C_FG3), (120, 576))
+        self.screen.blit(self.font.render(mb_str, True, C_FG1), (175, 576))
 
         self.screen.blit(render_display(None), (3, 3))
 

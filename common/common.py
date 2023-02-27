@@ -87,8 +87,8 @@ def str2number(string: str) -> int:
 
 
 def split16(number: int) -> tuple[int, int]:
-    string = number2str(number, 16)
-    return str2number(string[:8]), str2number(string[8:])
+    string = number2str(number, 4)
+    return str2number(string[:2]), str2number(string[2:])
 
 
 def instruction2binary(name: str) -> str:
